@@ -57,7 +57,8 @@ def _line(Py_ssize_t r0, Py_ssize_t c0, Py_ssize_t r1, Py_ssize_t c1):
 
     See Also
     --------
-    line_aa : Anti-aliased line generator
+    _line_sc : Supercover line generator
+    _line_aa : Anti-aliased line generator
     """
 
     cdef char steep = 0
@@ -103,6 +104,82 @@ def _line(Py_ssize_t r0, Py_ssize_t c0, Py_ssize_t r1, Py_ssize_t c1):
         cc[dc] = c1
 
     return np.asarray(rr), np.asarray(cc)
+
+
+def _line_sc(Py_ssize_t r0, Py_ssize_t c0, Py_ssize_t r1, Py_ssize_t c1):
+    """ Generate supercover line pixel coordinates. Differs
+    from line() in that every pixel the line travels through is
+    set to 1. (When the line passes through a pixel corner, all
+    pixels touching that corner are set to 1.)
+
+    Parameters
+    ----------
+    r0, c0 : int
+        Starting position (row, column).
+    r1, c1 : int
+        End position (row, column).
+
+    Returns
+    -------
+    rr, cc : (N,) ndarray of int
+        Indices of pixels that belong to the line.
+        May be used to directly index into an array, e.g.
+        ``img[rr, cc] = 1``.
+
+    See Also
+    --------
+    _line    : Line generator
+    _line_aa : Anti-aliased line generator
+
+    """
+    cdef Py_ssize_t dc = abs(c1-c0)
+    cdef Py_ssize_t dr = abs(r1-r0)
+    cdef Py_ssize_t c = c0
+    cdef Py_ssize_t r = r0
+    cdef Py_ssize_t ii = 0
+    cdef Py_ssize_t n = dc + dr
+    cdef Py_ssize_t err = dc - dr
+    cdef Py_ssize_t c_inc = 1 
+    cdef Py_ssize_t r_inc = 1 
+
+    cdef Py_ssize_t max_length = (max(dc,dr)+1)*3
+
+    cdef Py_ssize_t[::1] rr = np.zeros(max_length, dtype=np.intp)
+    cdef Py_ssize_t[::1] cc = np.zeros(max_length, dtype=np.intp)
+
+    if c1 > c0: c_inc = 1 
+    else:       c_inc = -1
+    if r1 > r0: r_inc = 1 
+    else:       r_inc = -1
+
+    dc = 2 * dc
+    dr = 2 * dr
+
+    while n > 0:
+        rr[ii] = r
+        cc[ii] = c
+        ii = ii + 1
+        if (err > 0):
+            c += c_inc
+            err -= dr
+        elif (err < 0):
+            r += r_inc
+            err += dc
+        else: # If err == 0 the algorithm is on a corner
+            rr[ii] = r + r_inc
+            cc[ii] = c
+            rr[ii+1] = r
+            cc[ii+1] = c + c_inc
+            ii = ii + 2
+            c += c_inc
+            r += r_inc
+            err = err + dc - dr
+            n = n - 1
+        n = n - 1 
+    rr[ii] = r
+    cc[ii] = c
+        
+    return np.asarray(rr[0:ii+1]), np.asarray(cc[0:ii+1])
 
 
 def _line_aa(Py_ssize_t r0, Py_ssize_t c0, Py_ssize_t r1, Py_ssize_t c1):

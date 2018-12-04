@@ -323,7 +323,7 @@ def set_color(image, coords, color, alpha=1):
     image[rr, cc] = vals + color
 
 
-def line(r0, c0, r1, c1):
+def line(r0, c0, r1, c1, supercover = False):
     """Generate line pixel coordinates.
 
     Parameters
@@ -332,6 +332,9 @@ def line(r0, c0, r1, c1):
         Starting position (row, column).
     r1, c1 : int
         End position (row, column).
+    supercover : bool, optional
+        Selects whether to use the standard Bresenham line
+        algorithm or the supercover version.
 
     Returns
     -------
@@ -361,8 +364,25 @@ def line(r0, c0, r1, c1):
            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], dtype=uint8)
+    >>> img = np.zeros((10, 10), dtype=np.uint8)
+    >>> rr, cc = line(1, 1, 6, 8, supercover = True)
+    >>> img[rr, cc] = 1
+    >>> img
+    array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+           [0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+           [0, 0, 1, 1, 0, 0, 0, 0, 0, 0],
+           [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+           [0, 0, 0, 0, 1, 1, 1, 0, 0, 0],
+           [0, 0, 0, 0, 0, 0, 1, 1, 0, 0],
+           [0, 0, 0, 0, 0, 0, 0, 1, 1, 0],
+           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], dtype=uint8)
     """
-    return _line(r0, c0, r1, c1)
+    if supercover is False:
+        return _line(r0, c0, r1, c1)
+    else:
+        return _line_sc(r0, c0, r1, c1)
 
 
 def line_aa(r0, c0, r1, c1):
