@@ -1,8 +1,8 @@
 import numpy as np
 
 from .._shared._geometry import polygon_clip
-from ._draw import (_coords_inside_image, _line, _line_aa,
-                    _polygon, _ellipse_perimeter,
+from ._draw import (_coords_inside_image, _line, _line_sc,
+                    _line_aa, _polygon, _ellipse_perimeter,
                     _circle_perimeter, _circle_perimeter_aa,
                     _bezier_curve)
 
